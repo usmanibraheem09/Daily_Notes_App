@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "837108840601",
+    "project_id": "daily-notes-app-66d73",
+    "storage_bucket": "daily-notes-app-66d73.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:837108840601:android:545d2e035aad680f922008",
+        "android_client_info": {
+          "package_name": "com.example.daily_notes_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAzHHpBXx-WQhYFlVk6SOLbD-hRC2gE_YU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
