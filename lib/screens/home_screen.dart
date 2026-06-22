@@ -15,9 +15,9 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final dbref = FirebaseDatabase.instance.ref('notes');
-  final searchController= TextEditingController();
-  final titleUpdateController= TextEditingController();
-  final descUpdateController= TextEditingController();
+  final searchController = TextEditingController();
+  final titleUpdateController = TextEditingController();
+  final descUpdateController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -28,120 +28,171 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Theme.of(context).colorScheme.onPrimaryContainer,
         title: Text(
           'Home Screen',
-          style: Theme.of(context).textTheme.titleLarge!.copyWith(color: Theme.of(context).colorScheme.onPrimary),
+          style: Theme.of(context)
+              .textTheme
+              .titleLarge!
+              .copyWith(color: Theme.of(context).colorScheme.onPrimary),
         ),
         centerTitle: true,
       ),
       drawer: NotesDrawer(child: Column()),
       body: Center(
           child: Container(
-            margin: EdgeInsets.symmetric(vertical: 20),
-            width: MediaQuery.of(context).size.width*0.9,
-            child: Column(
-            children: [
-           TextFormField(
-                controller: searchController,
-                decoration: InputDecoration(
-                  labelText: 'Search',
-                  hintText: 'Search',
-                  prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(),
-                ),
-                onChanged: (String value) {
-                  setState(() {});
-                },
+        margin: EdgeInsets.symmetric(vertical: 20),
+        width: MediaQuery.of(context).size.width * 0.9,
+        child: Column(
+          children: [
+            TextFormField(
+              controller: searchController,
+              decoration: InputDecoration(
+                labelText: 'Search',
+                hintText: 'Search',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(),
               ),
-            SizedBox(height: 10,),
+              onChanged: (String value) {
+                setState(() {});
+              },
+            ),
+            SizedBox(
+              height: 10,
+            ),
             Expanded(
               child: FirebaseAnimatedList(
                   query: dbref,
                   itemBuilder: (context, snapshot, animation, index) {
                     final title = snapshot.child('title').value.toString();
-                    final description = snapshot.child('description').value.toString();
-                    if(searchController.text.isEmpty){
+                    final description =
+                        snapshot.child('description').value.toString();
+                    if (searchController.text.isEmpty) {
                       return Padding(
-                      padding: EdgeInsets.symmetric(vertical: 5),
-                      child: ListTile(
-                        trailing: PopupMenuButton(itemBuilder: (context)=>[
-                          PopupMenuItem(
-                            value: 1,
-                            child: ListTile(
-                              onTap: (){
-                                Navigator.pop(context);
-                                myDialogue(title, snapshot.child('id').value.toString(), description);
-                              },
-                            leading: Icon(Icons.edit),
-                            title: Text('Edit'),
+                        padding: EdgeInsets.symmetric(vertical: 5),
+                        child: ListTile(
+                          trailing: PopupMenuButton(
+                              itemBuilder: (context) => [
+                                    PopupMenuItem(
+                                      value: 1,
+                                      child: ListTile(
+                                        onTap: () {
+                                          Navigator.pop(context);
+                                          myDialogue(
+                                              title,
+                                              snapshot
+                                                  .child('id')
+                                                  .value
+                                                  .toString(),
+                                              description);
+                                        },
+                                        leading: Icon(Icons.edit),
+                                        title: Text('Edit'),
+                                      ),
+                                    ),
+                                    PopupMenuItem(
+                                      value: 2,
+                                      child: ListTile(
+                                        onTap: () {
+                                          Navigator.pop(context);
+                                          dbref
+                                              .child(snapshot
+                                                  .child('id')
+                                                  .value
+                                                  .toString())
+                                              .remove();
+                                        },
+                                        leading: Icon(Icons.delete_forever),
+                                        title: Text('Delete'),
+                                      ),
+                                    )
+                                  ]),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                            side: BorderSide(color: Colors.black),
                           ),
+                          tileColor:
+                              Theme.of(context).colorScheme.onPrimaryContainer,
+                          title: Text(
+                            snapshot.child('title').value.toString(),
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold),
                           ),
-                          PopupMenuItem(
-                            value: 2,
-                          child: ListTile(
-                            onTap: (){
-                              Navigator.pop(context);
-                              dbref.child(snapshot.child('id').value.toString()).remove();
-                            },
-                            leading: Icon(Icons.delete_forever),
-                            title: Text('Delete'),
+                          subtitle: Text(
+                            snapshot.child('description').value.toString(),
+                            style: TextStyle(color: Colors.white),
                           ),
-                          )
-                        ]
                         ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                          side: BorderSide(color: Colors.black),
-                        ),
-                        tileColor: Theme.of(context).colorScheme.onPrimaryContainer,
-                        title: Text(snapshot.child('title').value.toString(), style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),),
-                        subtitle:Text(snapshot.child('description').value.toString(), style: TextStyle(color: Colors.white),),
-                      ),
-                    );
-                    } else if(title.toString().contains(searchController.text) || description.toString().contains(searchController.text)){
+                      );
+                    } else if (title
+                            .toString()
+                            .contains(searchController.text) ||
+                        description
+                            .toString()
+                            .contains(searchController.text)) {
                       return Padding(
-                      padding: EdgeInsets.symmetric(vertical: 5),
-                      child: ListTile(
-                        trailing: PopupMenuButton(itemBuilder: (context)=>[
-                          PopupMenuItem(
-                            value: 1,
-                            child: ListTile(
-                              onTap: (){
-                                Navigator.pop(context);
-                                myDialogue(title, snapshot.child('id').value.toString(), description);
-                              },
-                            leading: Icon(Icons.edit),
-                            title: Text('Edit'),
+                        padding: EdgeInsets.symmetric(vertical: 5),
+                        child: ListTile(
+                          trailing: PopupMenuButton(
+                              itemBuilder: (context) => [
+                                    PopupMenuItem(
+                                      value: 1,
+                                      child: ListTile(
+                                        onTap: () {
+                                          Navigator.pop(context);
+                                          myDialogue(
+                                              title,
+                                              snapshot
+                                                  .child('id')
+                                                  .value
+                                                  .toString(),
+                                              description);
+                                        },
+                                        leading: Icon(Icons.edit),
+                                        title: Text('Edit'),
+                                      ),
+                                    ),
+                                    PopupMenuItem(
+                                      value: 2,
+                                      child: ListTile(
+                                        onTap: () {
+                                          Navigator.pop(context);
+                                          dbref
+                                              .child(snapshot
+                                                  .child('id')
+                                                  .value
+                                                  .toString())
+                                              .remove();
+                                        },
+                                        leading: Icon(Icons.delete_forever),
+                                        title: Text('Delete'),
+                                      ),
+                                    )
+                                  ]),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                            side: BorderSide(color: Colors.black),
                           ),
+                          tileColor:
+                              Theme.of(context).colorScheme.onPrimaryContainer,
+                          title: Text(
+                            snapshot.child('title').value.toString(),
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold),
                           ),
-                          PopupMenuItem(
-                            value: 2,
-                          child: ListTile(
-                            onTap: (){
-                              Navigator.pop(context);
-                              dbref.child(snapshot.child('id').value.toString()).remove();
-                            },
-                            leading: Icon(Icons.delete_forever),
-                            title: Text('Delete'),
+                          subtitle: Text(
+                            snapshot.child('description').value.toString(),
+                            style: TextStyle(color: Colors.white),
                           ),
-                          )
-                        ]
                         ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                          side: BorderSide(color: Colors.black),
-                        ),
-                        tileColor: Theme.of(context).colorScheme.onPrimaryContainer,
-                        title: Text(snapshot.child('title').value.toString(), style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),),
-                        subtitle:Text(snapshot.child('description').value.toString(), style: TextStyle(color: Colors.white),),
-                      ),
-                    );
-                    } else{
+                      );
+                    } else {
                       return Container();
-                    } 
+                    }
                   }),
             )
-                    ],
-                  ),
-          )),
+          ],
+        ),
+      )),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Theme.of(context).colorScheme.onPrimaryContainer,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
@@ -154,60 +205,66 @@ class _HomeScreenState extends State<HomeScreen> {
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
-  Future<void> myDialogue(String title, String id, String description)async{
-    return showDialog(context: context, builder: (context){
-      titleUpdateController.text= title;
-      descUpdateController.text= description;
-      return AlertDialog(
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-        title: Text('Update Note'),
-        content: Container(
-          height: MediaQuery.of(context).size.width*0.5,
-          child: Column(
-            children: [
-              InputField(
-              hintText: 'Title', 
-              labelText: 'Title', 
-              controller: titleUpdateController, 
-              keyboardType: TextInputType.text, 
-              prefixIcon: Icons.title),
-              SizedBox(height: 10,),
-              InputField(
-              hintText: 'Description', 
-              labelText: 'Description', 
-              controller: descUpdateController, 
-              keyboardType: TextInputType.text, 
-              prefixIcon: Icons.description,
-              maxLines: 3,
+
+  Future<void> myDialogue(String title, String id, String description) async {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          titleUpdateController.text = title;
+          descUpdateController.text = description;
+          return AlertDialog(
+            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+            title: Text('Update Note'),
+            content: SizedBox(
+              height: MediaQuery.of(context).size.width * 0.5,
+              child: Column(
+                children: [
+                  InputField(
+                      hintText: 'Title',
+                      labelText: 'Title',
+                      controller: titleUpdateController,
+                      keyboardType: TextInputType.text,
+                      prefixIcon: Icons.title),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  InputField(
+                    hintText: 'Description',
+                    labelText: 'Description',
+                    controller: descUpdateController,
+                    keyboardType: TextInputType.text,
+                    prefixIcon: Icons.description,
+                    maxLines: 3,
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                ],
               ),
-              SizedBox(height: 10,),
-              
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  dbref.child(id).update({
+                    'title': titleUpdateController.text,
+                    'description': descUpdateController.text,
+                  }).then((value) {
+                    Utils().showToast('Note was updated!');
+                    Navigator.pop(context);
+                  }).onError((error, StackTrace) {
+                    Utils().showToast(error.toString());
+                  });
+                },
+                child: Text('Update'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text('Cancel'),
+              )
             ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: (){
-            dbref.child(id).update({
-              'title': titleUpdateController.text,
-              'description': descUpdateController.text,
-            }).then((value){
-              Utils().showToast('Note was updated!');
-              Navigator.pop(context);
-            }).onError((error, StackTrace){
-              Utils().showToast(error.toString());
-            });
-          }, 
-          child: Text('Update'),
-          ),
-          TextButton(
-            onPressed: (){
-            Navigator.pop(context);
-          },
-          child: Text('Cancel'),
-          )
-        ],
-      );
-    });
+          );
+        });
   }
 }

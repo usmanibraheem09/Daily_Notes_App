@@ -1,1 +1,0 @@
- C:\\Users\\Usman\\Desktop\\Flutter\ Projects\\daily_notes_app\\.dart_tool\\flutter_build\\a70771db5594365f6998a5b3783a0b58\\native_assets.yaml: 
