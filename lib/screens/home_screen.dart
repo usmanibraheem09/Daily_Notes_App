@@ -16,8 +16,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final dbref = FirebaseDatabase.instance.ref('notes');
   final searchController = TextEditingController();
-  final titleUpdateController = TextEditingController();
-  final descUpdateController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -75,12 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       child: ListTile(
                                         onTap: () {
                                           Navigator.pop(context);
-                                          myDialogue(
-                                              title,
-                                              snapshot
-                                                  .child('id')
-                                                  .value
-                                                  .toString(),
+                                          myDialogue(title, snapshot.key!,
                                               description);
                                         },
                                         leading: Icon(Icons.edit),
@@ -92,12 +85,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       child: ListTile(
                                         onTap: () {
                                           Navigator.pop(context);
-                                          dbref
-                                              .child(snapshot
-                                                  .child('id')
-                                                  .value
-                                                  .toString())
-                                              .remove();
+                                          dbref.child(snapshot.key!).remove();
                                         },
                                         leading: Icon(Icons.delete_forever),
                                         title: Text('Delete'),
@@ -155,12 +143,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       child: ListTile(
                                         onTap: () {
                                           Navigator.pop(context);
-                                          dbref
-                                              .child(snapshot
-                                                  .child('id')
-                                                  .value
-                                                  .toString())
-                                              .remove();
+                                          dbref.child(snapshot.key!).remove();
                                         },
                                         leading: Icon(Icons.delete_forever),
                                         title: Text('Delete'),
@@ -206,65 +189,65 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future<void> myDialogue(String title, String id, String description) async {
+  Future<void> myDialogue(
+    String title,
+    String id,
+    String description,
+  ) async {
+    final titleController = TextEditingController(text: title);
+    final descriptionController = TextEditingController(text: description);
+
     return showDialog(
-        context: context,
-        builder: (context) {
-          titleUpdateController.text = title;
-          descUpdateController.text = description;
-          return AlertDialog(
-            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-            title: Text('Update Note'),
-            content: SizedBox(
-              height: MediaQuery.of(context).size.width * 0.5,
-              child: Column(
-                children: [
-                  InputField(
-                      hintText: 'Title',
-                      labelText: 'Title',
-                      controller: titleUpdateController,
-                      keyboardType: TextInputType.text,
-                      prefixIcon: Icons.title),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  InputField(
-                    hintText: 'Description',
-                    labelText: 'Description',
-                    controller: descUpdateController,
-                    keyboardType: TextInputType.text,
-                    prefixIcon: Icons.description,
-                    maxLines: 3,
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                ],
-              ),
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+          title: const Text('Update Note'),
+          content: SizedBox(
+            height: MediaQuery.of(context).size.width * 0.5,
+            child: Column(
+              children: [
+                InputField(
+                  hintText: 'Title',
+                  labelText: 'Title',
+                  controller: titleController,
+                  keyboardType: TextInputType.text,
+                  prefixIcon: Icons.title,
+                ),
+                const SizedBox(height: 10),
+                InputField(
+                  hintText: 'Description',
+                  labelText: 'Description',
+                  controller: descriptionController,
+                  keyboardType: TextInputType.text,
+                  prefixIcon: Icons.description,
+                  maxLines: 3,
+                ),
+              ],
             ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  dbref.child(id).update({
-                    'title': titleUpdateController.text,
-                    'description': descUpdateController.text,
-                  }).then((value) {
-                    Utils().showToast('Note was updated!');
-                    Navigator.pop(context);
-                  }).onError((error, StackTrace) {
-                    Utils().showToast(error.toString());
-                  });
-                },
-                child: Text('Update'),
-              ),
-              TextButton(
-                onPressed: () {
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                dbref.child(id).update({
+                  'title': titleController.text.trim(),
+                  'description': descriptionController.text.trim(),
+                }).then((value) {
+                  Utils().showToast('Note was updated!');
                   Navigator.pop(context);
-                },
-                child: Text('Cancel'),
-              )
-            ],
-          );
-        });
+                });
+              },
+              child: const Text('Update'),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

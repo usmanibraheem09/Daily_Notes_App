@@ -1,11 +1,16 @@
+import 'package:daily_notes_app/providers/add_note_provider.dart';
 import 'package:daily_notes_app/screens/splash_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-void main() async{
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  Firebase.initializeApp();
-  runApp(const MyApp());
+  await Firebase.initializeApp();
+  runApp(MultiProvider(
+    providers: [ChangeNotifierProvider(create: (_) => NotesProvider())],
+    child: const MyApp(),
+  ));
 }
 
 class MyApp extends StatelessWidget {

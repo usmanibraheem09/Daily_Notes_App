@@ -194,9 +194,11 @@
     <string name="common_signin_button_text">Sign in</string>
     <string name="common_signin_button_text_long">Sign in with Google</string>
     <string name="copy_toast_msg">Link copied to clipboard</string>
+    <string name="default_web_client_id" translatable="false">837108840601-qd9hmh3uer20ekprh2m5ec9k1u9lal2p.apps.googleusercontent.com</string>
     <string name="fallback_menu_item_copy_link">Copy link</string>
     <string name="fallback_menu_item_open_in_browser">Open in browser</string>
     <string name="fallback_menu_item_share_link">Share link</string>
+    <string name="firebase_database_url" translatable="false">https://daily-notes-app-66d73-default-rtdb.firebaseio.com</string>
     <string name="gcm_defaultSenderId" translatable="false">837108840601</string>
     <string name="google_api_key" translatable="false">AIzaSyAzHHpBXx-WQhYFlVk6SOLbD-hRC2gE_YU</string>
     <string name="google_app_id" translatable="false">1:837108840601:android:545d2e035aad680f922008</string>
