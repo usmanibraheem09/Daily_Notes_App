@@ -1,10 +1,44 @@
+import 'package:daily_notes_app/constants/constants.dart';
 import 'package:daily_notes_app/screens/add_note.dart';
+import 'package:daily_notes_app/screens/note_details.dart';
 import 'package:daily_notes_app/services/utils.dart';
+import 'package:daily_notes_app/widgets/note_card.dart';
 import 'package:daily_notes_app/widgets/drawer.dart';
 import 'package:daily_notes_app/widgets/input_field.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:firebase_database/ui/firebase_animated_list.dart';
 import 'package:flutter/material.dart';
+
+Map<String, dynamic>? _parseNotesMap(Object? raw) {
+  if (raw is! Map) return null;
+  try {
+    return Map<String, dynamic>.from(raw);
+  } catch (_) {
+    return null;
+  }
+}
+
+List<MapEntry<String, dynamic>> _sortByTimeStamp(
+    Map<String, dynamic> notesMap) {
+  final validEntries = notesMap.entries.where((e) => e.value is Map).toList();
+  validEntries.sort((a, b) {
+    final aTime = (a.value as Map)[NoteFields.timestamp] ?? 0;
+    final bTime = (b.value as Map)[NoteFields.timestamp] ?? 0;
+    return bTime.compareTo(aTime);
+  });
+  return validEntries;
+}
+
+List<MapEntry<String, dynamic>> _filterNotes(
+    List<MapEntry<String, dynamic>> entries, String query) {
+  if (query.isEmpty) return entries;
+  return entries.where((entry) {
+    final v = entry.value as Map;
+    final title = v[NoteFields.title]?.toString().toLowerCase() ?? '';
+    final description =
+        v[NoteFields.description]?.toString().toLowerCase() ?? '';
+    return title.contains(query) || description.contains(query);
+  }).toList();
+}
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,6 +50,12 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final dbref = FirebaseDatabase.instance.ref('notes');
   final searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +86,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 labelText: 'Search',
                 hintText: 'Search',
                 prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
+                contentPadding: EdgeInsets.all(10),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
               onChanged: (String value) {
                 setState(() {});
@@ -56,123 +99,77 @@ class _HomeScreenState extends State<HomeScreen> {
               height: 10,
             ),
             Expanded(
-              child: FirebaseAnimatedList(
-                  query: dbref,
-                  itemBuilder: (context, snapshot, animation, index) {
-                    final title = snapshot.child('title').value.toString();
-                    final description =
-                        snapshot.child('description').value.toString();
-                    if (searchController.text.isEmpty) {
-                      return Padding(
-                        padding: EdgeInsets.symmetric(vertical: 5),
-                        child: ListTile(
-                          trailing: PopupMenuButton(
-                              itemBuilder: (context) => [
-                                    PopupMenuItem(
-                                      value: 1,
-                                      child: ListTile(
-                                        onTap: () {
-                                          Navigator.pop(context);
-                                          myDialogue(title, snapshot.key!,
-                                              description);
-                                        },
-                                        leading: Icon(Icons.edit),
-                                        title: Text('Edit'),
-                                      ),
-                                    ),
-                                    PopupMenuItem(
-                                      value: 2,
-                                      child: ListTile(
-                                        onTap: () {
-                                          Navigator.pop(context);
-                                          dbref.child(snapshot.key!).remove();
-                                        },
-                                        leading: Icon(Icons.delete_forever),
-                                        title: Text('Delete'),
-                                      ),
-                                    )
-                                  ]),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                            side: BorderSide(color: Colors.black),
+                child: StreamBuilder<DatabaseEvent>(
+                    stream: dbref.onValue,
+                    builder: (context, snapshot) {
+                      if (snapshot.hasError) {
+                        return Center(
+                            child:
+                                Text('Somthing went wrong: ${snapshot.error}'));
+                      }
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      }
+                      final notesMap =
+                          _parseNotesMap(snapshot.data?.snapshot.value);
+                      if (notesMap == null || notesMap.isEmpty) {
+                        return Center(
+                          child: Text('No notes yet'),
+                        );
+                      }
+
+                      final sorted = _sortByTimeStamp(notesMap);
+                      final query = searchController.text.trim().toLowerCase();
+                      final filtered = _filterNotes(sorted, query);
+
+                      if (filtered.isEmpty) {
+                        return const Center(
+                            child: Text('No matching notes found'));
+                      }
+
+                      return GridView.builder(
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 5,
+                            mainAxisSpacing: 10,
+                            childAspectRatio: 1,
                           ),
-                          tileColor:
-                              Theme.of(context).colorScheme.onPrimaryContainer,
-                          title: Text(
-                            snapshot.child('title').value.toString(),
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Text(
-                            snapshot.child('description').value.toString(),
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      );
-                    } else if (title
-                            .toString()
-                            .contains(searchController.text) ||
-                        description
-                            .toString()
-                            .contains(searchController.text)) {
-                      return Padding(
-                        padding: EdgeInsets.symmetric(vertical: 5),
-                        child: ListTile(
-                          trailing: PopupMenuButton(
-                              itemBuilder: (context) => [
-                                    PopupMenuItem(
-                                      value: 1,
-                                      child: ListTile(
-                                        onTap: () {
-                                          Navigator.pop(context);
-                                          myDialogue(
-                                              title,
-                                              snapshot
-                                                  .child('id')
-                                                  .value
-                                                  .toString(),
-                                              description);
-                                        },
-                                        leading: Icon(Icons.edit),
-                                        title: Text('Edit'),
-                                      ),
-                                    ),
-                                    PopupMenuItem(
-                                      value: 2,
-                                      child: ListTile(
-                                        onTap: () {
-                                          Navigator.pop(context);
-                                          dbref.child(snapshot.key!).remove();
-                                        },
-                                        leading: Icon(Icons.delete_forever),
-                                        title: Text('Delete'),
-                                      ),
-                                    )
-                                  ]),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                            side: BorderSide(color: Colors.black),
-                          ),
-                          tileColor:
-                              Theme.of(context).colorScheme.onPrimaryContainer,
-                          title: Text(
-                            snapshot.child('title').value.toString(),
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Text(
-                            snapshot.child('description').value.toString(),
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      );
-                    } else {
-                      return Container();
-                    }
-                  }),
-            )
+                          itemCount: filtered.length,
+                          itemBuilder: (context, index) {
+                            final id = filtered[index].key;
+                            final value = Map<String, dynamic>.from(
+                                filtered[index].value as Map);
+                            return InkWell(
+                              onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (ctx) => NoteDetails(
+                                            id: id,
+                                          ))),
+                              child: NoteCard(
+                                title:
+                                    value[NoteFields.title]?.toString() ?? '',
+                                description:
+                                    value[NoteFields.description]?.toString() ??
+                                        '',
+                                onEdit: () {
+                                  myDialogue(
+                                      value[NoteFields.title]?.toString() ?? '',
+                                      id,
+                                      value[NoteFields.description]
+                                              ?.toString() ??
+                                          '');
+                                },
+                                onDelete: () {
+                                  dbref.child(id).remove();
+                                },
+                              ),
+                            );
+                          });
+                    }))
           ],
         ),
       )),
